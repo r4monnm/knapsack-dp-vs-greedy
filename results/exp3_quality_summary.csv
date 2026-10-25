@@ -1,0 +1,9 @@
+greedy,correlation,instances,mean_quality_percent,min_quality_percent,median_quality_percent,percent_optimal
+greedy_ratio,uncorrelated,100,99.614,96.066,99.838,36.0
+greedy_ratio,weak,100,99.459,96.993,99.712,17.0
+greedy_ratio,strong,100,97.598,91.948,98.218,3.0
+greedy_ratio,all,300,98.890,91.948,99.589,18.7
+greedy_value,uncorrelated,100,90.783,64.812,92.308,1.0
+greedy_value,weak,100,91.497,84.301,91.891,0.0
+greedy_value,strong,100,85.128,74.866,85.652,0.0
+greedy_value,all,300,89.136,64.812,89.785,0.3

@@ -1,0 +1,16 @@
+case,capacity,algorithm,picks,value,weight,optimal,gap_percent
+classic_ratio_fails,50,dp_2d,"[(100,20), (120,30)]",220,50,220,0.00
+classic_ratio_fails,50,greedy_ratio,"[(60,10), (100,20)]",160,30,220,27.27
+classic_ratio_fails,50,greedy_value,"[(100,20), (120,30)]",220,50,220,0.00
+one_big_item_beats_small_high_ratio,100,dp_2d,"[(95,100)]",95,100,95,0.00
+one_big_item_beats_small_high_ratio,100,greedy_ratio,"[(10,6), (10,6), (10,6), (10,6)]",40,24,95,57.89
+one_big_item_beats_small_high_ratio,100,greedy_value,"[(95,100)]",95,100,95,0.00
+greedy_value_fails,10,dp_2d,"[(6,5), (6,5)]",12,10,12,0.00
+greedy_value_fails,10,greedy_ratio,"[(6,5), (6,5)]",12,10,12,0.00
+greedy_value_fails,10,greedy_value,"[(10,10)]",10,10,12,16.67
+both_fail_badly,100,dp_2d,"[(60,50), (60,50)]",120,100,120,0.00
+both_fail_badly,100,greedy_ratio,"[(60,50), (31,20)]",91,70,120,24.17
+both_fail_badly,100,greedy_value,"[(65,100)]",65,100,120,45.83
+greedy_works_fine,12,dp_2d,"[(10,5), (7,4), (4,3)]",21,12,21,0.00
+greedy_works_fine,12,greedy_ratio,"[(10,5), (7,4), (3,2), (1,1)]",21,12,21,0.00
+greedy_works_fine,12,greedy_value,"[(10,5), (7,4), (4,3)]",21,12,21,0.00
