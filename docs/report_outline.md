@@ -106,9 +106,20 @@ charts are in `results/charts/`.
 - Measured growth vs theory:
   - Experiment 1 (W fixed): fit the slope of log(time) vs log(n). DP should be
     close to 1 (linear in n since W is constant); greedy slightly above 1
-    (n log n). [TODO: slopes from the CSV]
+    (n log n). Measured: DP (2D) 1.02, greedy-by-ratio 1.04.
   - Experiment 2 (n fixed): DP slope vs log(W) should be close to 1; greedy
-    slope close to 0. [TODO: slopes from the CSV]
+    slope close to 0. Measured: DP (2D) 1.12, greedy-by-ratio -0.02.
+  - Fitted log-log runtime slopes over the 4 largest inputs
+    (`results/growth_slopes.md`, charts `results/charts/growth_runtime_vs_n.png`
+    and `results/charts/growth_runtime_vs_W.png`):
+
+| algorithm | slope vs n | slope vs W |
+|---|---|---|
+| DP (2D table) | 1.02 | 1.12 |
+| DP (1D rolling array) | 0.83 | 0.92 |
+| Greedy by ratio | 1.04 | -0.02 |
+| Greedy by value | 1.11 | 0.25 |
+
 - Explain why DP is pseudo-polynomial and what that means for large W
   (for example W = 10^9 would be infeasible even though n is small).
 - Discuss constant factors: Python lists, tracemalloc overhead, the cost of

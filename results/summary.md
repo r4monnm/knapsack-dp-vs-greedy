@@ -65,3 +65,11 @@ Chart: `charts/exp3_quality_hist.png`.
 
 Chart: `charts/exp4_failure_cases.png`.
 
+## Growth rate plots
+
+Log-log versions of the Experiment 1 and 2 charts, drawn by `experiments/plot_growth.py`. Each line is labeled with its fitted slope over the 4 largest inputs, and dashed lines show the theoretical growth rate anchored at the largest input. Slope table: [`growth_slopes.md`](growth_slopes.md).
+
+- [Runtime vs n](charts/growth_runtime_vs_n.png) (`charts/growth_runtime_vs_n.png`)
+- [Runtime vs W](charts/growth_runtime_vs_W.png) (`charts/growth_runtime_vs_W.png`)
+- [Peak memory vs W](charts/growth_memory_vs_W.png) (`charts/growth_memory_vs_W.png`)
+

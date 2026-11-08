@@ -67,7 +67,12 @@ python experiments/exp1_items.py     # or any one of them on its own
 python experiments/exp2_capacity.py
 python experiments/exp3_quality.py
 python experiments/exp4_failure_cases.py
+python experiments/plot_growth.py    # Run the growth plots (log-log charts + slope table from the CSVs)
 ```
+
+`run_all.py` also runs the growth plots at the end. `plot_growth.py` only reads
+`exp1_items.csv` and `exp2_capacity.csv`, so it can be rerun on its own in a
+second or two without repeating the experiments.
 
 `run_all.py` takes about 90 seconds on a laptop. Experiment 2 is the slow one
 because the 2D DP table at W = 50,000 is 200 x 50,001 cells.
@@ -81,6 +86,7 @@ results/
   exp3_quality.csv            one row per random instance (300 rows)
   exp3_quality_summary.csv    mean / min / % optimal per greedy variant and instance type
   exp4_failure_cases.csv      picks, values and gaps for the hand-built cases
+  growth_slopes.md            fitted log-log runtime slopes vs n and vs W (from plot_growth.py)
   summary.md                  key numbers pulled from the CSVs, ready for the report
   charts/
     exp1_runtime_vs_n.png     log-log runtime with O(nW) and O(n log n) reference lines
@@ -89,6 +95,9 @@ results/
     exp2_memory_vs_capacity.png
     exp3_quality_hist.png     histogram of greedy value as % of optimum
     exp4_failure_cases.png
+    growth_runtime_vs_n.png   log-log, fitted slopes, dashed O(nW) / O(n log n) anchored at the largest n
+    growth_runtime_vs_W.png   same vs capacity (O(n log n) is flat in W)
+    growth_memory_vs_W.png    peak memory vs capacity, fitted slopes
 ```
 
 Charts are rendered with the matplotlib Agg backend, so no display is needed.

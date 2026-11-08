@@ -6,7 +6,8 @@
 # Team:   Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
 # File:   experiments/run_all.py
 
-"""Run all four experiments in order, then write results/summary.md.
+"""Run all four experiments in order, draw the growth plots, then write
+results/summary.md.
 
 Usage (from the repo root):
     python experiments/run_all.py
@@ -27,6 +28,7 @@ import exp1_items  # noqa: E402
 import exp2_capacity  # noqa: E402
 import exp3_quality  # noqa: E402
 import exp4_failure_cases  # noqa: E402
+import plot_growth  # noqa: E402
 
 SUMMARY_PATH = common.results_path("summary.md")
 
@@ -146,6 +148,18 @@ def write_summary(timings: dict) -> None:
     lines.append("Chart: `charts/exp4_failure_cases.png`.")
     lines.append("")
 
+    lines.append("## Growth rate plots")
+    lines.append("")
+    lines.append("Log-log versions of the Experiment 1 and 2 charts, drawn by `experiments/plot_growth.py`. "
+                 "Each line is labeled with its fitted slope over the 4 largest inputs, and dashed lines show "
+                 "the theoretical growth rate anchored at the largest input. Slope table: "
+                 "[`growth_slopes.md`](growth_slopes.md).")
+    lines.append("")
+    lines.append("- [Runtime vs n](charts/growth_runtime_vs_n.png) (`charts/growth_runtime_vs_n.png`)")
+    lines.append("- [Runtime vs W](charts/growth_runtime_vs_W.png) (`charts/growth_runtime_vs_W.png`)")
+    lines.append("- [Peak memory vs W](charts/growth_memory_vs_W.png) (`charts/growth_memory_vs_W.png`)")
+    lines.append("")
+
     with open(SUMMARY_PATH, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
     print(f"[run_all] wrote {SUMMARY_PATH}")
@@ -160,6 +174,8 @@ def main() -> None:
         t0 = time.perf_counter()
         module.main()
         timings[label] = time.perf_counter() - t0
+    print("\n##### Drawing growth plots #####")
+    plot_growth.main()
     write_summary(timings)
     print(f"[run_all] finished all experiments in {sum(timings.values()):.1f} s")
 
