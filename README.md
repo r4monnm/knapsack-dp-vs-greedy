@@ -97,7 +97,7 @@ results/
     exp4_failure_cases.png
     growth_runtime_vs_n.png   log-log, fitted slopes, dashed O(nW) / O(n log n) anchored at the largest n
     growth_runtime_vs_W.png   same vs capacity (O(n log n) is flat in W)
-    growth_memory_vs_W.png    peak memory vs capacity, fitted slopes
+    growth_memory_vs_W.png    peak memory vs capacity, fitted slopes, dashed O(nW) / O(W) about a factor of n apart
 ```
 
 Charts are rendered with the matplotlib Agg backend, so no display is needed.

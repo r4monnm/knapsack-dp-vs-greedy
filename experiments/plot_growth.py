@@ -29,7 +29,7 @@ from __future__ import annotations
 import os
 import sys
 from statistics import median
-from typing import Callable, Dict, List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +58,8 @@ FIT_POINTS = 4
 SUBTITLE = "Solid: measured. Dashed: theoretical growth rate, anchored at the largest input."
 
 Series = Dict[str, Tuple[np.ndarray, np.ndarray]]
+# (color, legend label, xs, ys, tag) where tag is None or (text, x position of the tag)
+Overlay = Tuple[str, str, np.ndarray, np.ndarray, Optional[Tuple[str, float]]]
 
 
 # ---------------------------------------------------------------- data
@@ -116,7 +118,7 @@ def _stagger(targets: List[float], gap: float, lo: float, hi: float) -> List[flo
     return out
 
 
-def growth_chart(series: Series, algorithms: List[str], overlays: List[Tuple[str, str, np.ndarray, np.ndarray]],
+def growth_chart(series: Series, algorithms: List[str], overlays: List[Overlay],
                  title: str, xlabel: str, ylabel: str, filename: str) -> Dict[str, float]:
     """Draw one log-log chart; return the fitted slope per algorithm."""
     fig, ax = plt.subplots(figsize=(10, 5.2), dpi=200, facecolor="white")
@@ -131,7 +133,7 @@ def growth_chart(series: Series, algorithms: List[str], overlays: List[Tuple[str
                 markeredgecolor=COLORS[alg], markeredgewidth=1.6, markersize=6,
                 linewidth=2, label=common.LABELS[alg], zorder=3)
 
-    for color, label, xs, ys in overlays:
+    for color, label, xs, ys, tag in overlays:
         ax.plot(xs, ys, color=color, linestyle="--", linewidth=1.4, alpha=0.75, label=label, zorder=2)
 
     ax.set_xscale("log")
@@ -151,6 +153,19 @@ def growth_chart(series: Series, algorithms: List[str], overlays: List[Tuple[str
     lo, hi = np.log10(all_y.min()), np.log10(all_y.max())
     pad = 0.08 * (hi - lo)
     ax.set_ylim(10 ** (lo - pad), 10 ** (hi + pad))
+
+    # Short tags on the theory lines, rotated to sit along the line just above it.
+    fig.canvas.draw()
+    for color, _label, xs, ys, tag in overlays:
+        if not tag:
+            continue
+        text, x_at = tag
+        y_at = float(np.interp(np.log10(x_at), np.log10(xs), np.log10(ys)))
+        (x0, y0), (x1, y1) = ax.transData.transform([(xs[0], ys[0]), (xs[-1], ys[-1])])
+        angle = float(np.degrees(np.arctan2(y1 - y0, x1 - x0)))
+        ax.annotate(text, xy=(x_at, 10 ** y_at), xytext=(0, 9), textcoords="offset points",
+                    ha="left", va="bottom", rotation=angle, rotation_mode="anchor",
+                    fontsize=10, fontweight="bold", color=color, zorder=4)
 
     # End-of-line labels just outside the plot area, staggered so they never overlap.
     ylo, yhi = (np.log10(v) for v in ax.get_ylim())
@@ -192,9 +207,9 @@ def runtime_vs_n() -> Dict[str, float]:
     overlays = [
         # W is fixed in this experiment, so O(nW) grows linearly in n.
         (COLORS["dp_2d"], "O(nW) theory, anchored to DP (2D)", dense,
-         anchored(dense, lambda x: x, dp_x[-1], dp_y[-1])),
+         anchored(dense, lambda x: x, dp_x[-1], dp_y[-1]), None),
         (COLORS["greedy_ratio"], "O(n log n) theory, anchored to greedy by ratio", dense,
-         anchored(dense, _n_log_n, gr_x[-1], gr_y[-1])),
+         anchored(dense, _n_log_n, gr_x[-1], gr_y[-1]), None),
     ]
     return growth_chart(s, ALGORITHMS, overlays,
                         "Runtime vs number of items (W = 1000)",
@@ -210,10 +225,10 @@ def runtime_vs_w() -> Dict[str, float]:
     overlays = [
         # n is fixed in this experiment, so O(nW) grows linearly in W ...
         (COLORS["dp_2d"], "O(nW) theory, anchored to DP (2D)", dense,
-         anchored(dense, lambda w: w, dp_x[-1], dp_y[-1])),
+         anchored(dense, lambda w: w, dp_x[-1], dp_y[-1]), None),
         # ... and O(n log n) does not depend on W at all: a flat line.
         (COLORS["greedy_ratio"], "O(n log n) theory (flat in W), anchored to greedy by ratio", dense,
-         anchored(dense, np.ones_like, gr_x[-1], gr_y[-1])),
+         anchored(dense, np.ones_like, gr_x[-1], gr_y[-1]), None),
     ]
     return growth_chart(s, ALGORITHMS, overlays,
                         "Runtime vs knapsack capacity (n = 200)",
@@ -223,7 +238,18 @@ def runtime_vs_w() -> Dict[str, float]:
 
 def memory_vs_w() -> Dict[str, float]:
     s = load_series(EXP2_CSV, "capacity", memory_mib)
-    return growth_chart(s, ["dp_2d", "dp_1d", "greedy_ratio"], [],
+    algorithms = ["dp_2d", "dp_1d", "greedy_ratio"]
+    dense = np.geomspace(min(s[a][0][0] for a in algorithms), max(s[a][0][-1] for a in algorithms), 200)
+    d2_x, d2_y = s["dp_2d"]
+    d1_x, d1_y = s["dp_1d"]
+    overlays = [
+        # n = 200 is fixed, so both are linear in W: parallel on log-log, about a factor of n apart.
+        (COLORS["dp_2d"], "O(nW) theory, anchored to DP (2D)", dense,
+         anchored(dense, lambda w: w, d2_x[-1], d2_y[-1]), ("O(nW)", 115.0)),
+        (COLORS["dp_1d"], "O(W) theory, anchored to DP (1D)", dense,
+         anchored(dense, lambda w: w, d1_x[-1], d1_y[-1]), ("O(W)", 230.0)),
+    ]
+    return growth_chart(s, algorithms, overlays,
                         "Peak memory vs knapsack capacity (n = 200)",
                         "capacity W (log scale)", "peak memory, MiB (log scale)",
                         CHART_MEMORY_W)
