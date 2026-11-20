@@ -24,14 +24,46 @@ charts are in `results/charts/`.
 
 ## 2. Background
 
-- NP-hardness of 0/1 knapsack and why DP is pseudo-polynomial (O(nW) depends on
-  the numeric value of W, not on its bit length).
-- Greedy for the fractional knapsack is optimal (sort by value/weight); explain
-  why the same ordering can fail for 0/1 (cannot take part of an item).
-- The two greedy variants we test: by ratio and by raw value.
-- Pisinger instance families (uncorrelated, weakly correlated, strongly
-  correlated) and why strongly correlated instances are hard for greedy.
-- [TODO: 2 or 3 references]
+The 0/1 knapsack problem selects items with values $v_i$ and weights $w_i$
+to maximize total value without exceeding capacity $W$. Each item must be
+selected completely or excluded. Its mathematical formulation is
+
+$$
+\max \sum_{i=1}^{n} v_i x_i
+\quad\text{subject to}\quad
+\sum_{i=1}^{n} w_i x_i \le W,\qquad x_i\in\{0,1\}.
+$$
+
+The optimization problem is NP-hard. For integer weights and capacity, the
+standard dynamic programming algorithm solves it exactly in $O(nW)$ time.
+This is pseudo-polynomial because the running time depends on the numerical
+value of $W$, while representing $W$ in binary requires only $O(\log W)$
+bits. A capacity that takes relatively few bits to represent can therefore
+still require a very large table [1]. Our full-table implementation stores
+$O(nW)$ entries and recovers the selected items. The rolling-array version
+uses $O(W)$ space and returns only the optimal value.
+
+We compare DP with two greedy heuristics. Greedy by ratio processes items in
+decreasing order of value per unit of weight, $v_i/w_i$. Greedy by value
+processes items in decreasing order of value alone. Both accept an item
+whenever it fits and continue checking subsequent items when one does not
+fit. Sorting gives these implementations an $O(n\log n)$ worst-case running
+time, but neither guarantees an optimal 0/1 solution. The implementations
+are in [algorithms.py](../knapsack/algorithms.py).
+
+The distinction between 0/1 and fractional knapsack explains why ratio-based
+greedy can fail. Fractional knapsack allows part of an item to be selected.
+Taking available weight from the highest-value-density items is optimal:
+a lower-density portion can be exchanged for an equal weight of a
+higher-density item without reducing value [2]. In 0/1 knapsack, that
+exchange may require splitting an item, which is prohibited. An initially
+attractive item can therefore prevent a better combination from fitting.
+
+Instance structure also affects performance. Pisinger describes benchmark
+families with independent values and weights, values close to weights, and
+values equal to weights plus a fixed constant [3]. Our project uses versions
+of these uncorrelated, weakly correlated, and strongly correlated families
+to examine how value-weight relationships affect greedy solution quality.
 
 ## 3. Methodology
 
@@ -69,27 +101,129 @@ charts are in `results/charts/`.
 
 ### Experiment 3: solution quality (`results/exp3_quality.csv`, `results/exp3_quality_summary.csv`)
 
-- Setup: 300 random instances, 100 per correlation type, n in [20, 100],
-  capacity between 20% and 60% of the total weight.
-- Figure: `results/charts/exp3_quality_hist.png`.
-- Table: mean %, min %, and % of instances where greedy was optimal, for each
-  greedy variant and each instance type (copy from `summary.md`).
-- [TODO: greedy-by-ratio mean % and % optimal overall; same for greedy-by-value]
-- [TODO: which instance type hurts greedy most and why]
+We evaluated 300 randomly generated instances, consisting of 100 instances
+from each correlation family. Each instance contained between 20 and 100
+items. Capacity was obtained by rounding down a randomly selected 20% to
+60% of the total item weight. The experiment used master seed 4306, allowing
+the same instances to be regenerated. For each instance, the two-dimensional
+DP solver supplied the optimal value used to evaluate both greedy heuristics.
+These settings are defined in [exp3_quality.py](../experiments/exp3_quality.py).
+
+Weights were sampled uniformly from 1 through 100. Uncorrelated values were
+independently sampled from the same range. Weakly correlated values were
+generated as $\max(1,w_i+\delta_i)$, where $\delta_i$ was an integer sampled
+uniformly from -10 through 10. Strongly correlated values were $w_i+10$.
+Consequently, correlated values could exceed 100 and reach 110. These are
+the actual settings of the [instance generator](../knapsack/instance.py).
+
+Solution quality was measured as $100(V_{\text{greedy}}/V_{\text{optimal}})$.
+The table reports the arithmetic mean and minimum of these percentages,
+together with the percentage of instances solved optimally.
+
+| Heuristic | Instance family | Instances | Mean quality | Minimum quality | Exactly optimal |
+|---|---|---:|---:|---:|---:|
+| Ratio | Uncorrelated | 100 | 99.614% | 96.066% | 36.0% |
+| Ratio | Weakly correlated | 100 | 99.459% | 96.993% | 17.0% |
+| Ratio | Strongly correlated | 100 | 97.598% | 91.948% | 3.0% |
+| **Ratio** | **All** | **300** | **98.890%** | **91.948%** | **18.7%** |
+| Value | Uncorrelated | 100 | 90.783% | 64.812% | 1.0% |
+| Value | Weakly correlated | 100 | 91.497% | 84.301% | 0.0% |
+| Value | Strongly correlated | 100 | 85.128% | 74.866% | 0.0% |
+| **Value** | **All** | **300** | **89.136%** | **64.812%** | **0.3%** |
+
+Source: [Experiment 3 summary data](../results/exp3_quality_summary.csv).
+
+![Distribution of greedy solution quality relative to DP across the three instance families](../results/charts/exp3_quality_hist.png)
+
+*Experiment 3: Greedy solution quality as a percentage of the DP optimum.
+Each panel contains 300 instances, grouped by correlation family.*
+
+Greedy by ratio achieved substantially better average quality across all
+three families. Its overall mean shortfall was approximately 1.110%,
+compared with 10.864% for greedy by value. However, high average quality did
+not imply frequent exact optimality: ratio greedy matched DP on only 56 of
+300 instances, while value greedy matched it on one. These counts are
+confirmed by the [individual results](../results/exp3_quality.csv).
+
+Strongly correlated instances produced the lowest mean quality for both
+heuristics. The generator provides a useful explanation: because
+$v_i=w_i+10$, the ratio is $1+10/w_i$, so ratio greedy orders items from
+lightest to heaviest. For any selected set, total value equals its total
+weight plus ten times its item count. Choosing small items favors the
+item-count bonus, but can leave unused capacity that a different combination
+would use more effectively. Conversely, value greedy favors heavier items
+and can sacrifice too many item-count bonuses. This is an interpretation
+of the generator and observed results, rather than proof that strongly
+correlated instances are always hardest.
+
+The results support ratio greedy as a promising heuristic for these sampled
+instances. They do not establish a universal approximation guarantee: the
+observed minimum describes this sample, and other inputs can produce much
+larger losses. Experiment 4 investigates that limitation directly.
 
 ### Experiment 4: hand-built failure cases (`results/exp4_failure_cases.csv`)
 
-- Figure: `results/charts/exp4_failure_cases.png`.
-- Walk through each case with the picks of each algorithm:
-  1. Classic: capacity 50, items (60,10), (100,20), (120,30). Greedy-by-ratio
-     = 160, optimal = 220 (gap 27.3%).
-  2. One big item beats several small high-ratio items: greedy-by-ratio = 40,
-     optimal = 95 (gap 57.9%).
-  3. Greedy-by-value fails: greedy-by-value = 10, optimal = 12 (gap 16.7%).
-  4. Both fail badly: greedy-by-ratio = 91, greedy-by-value = 65, optimal = 120.
-  5. Control case where both greedy orders are optimal.
-- [TODO: explain the mechanism in each case: leftover capacity that cannot be
-  filled, or a lure item with a high ratio that blocks the best combination]
+We examined four counterexamples and one control case to identify how
+individual greedy choices affect the final solution. All item pairs below
+use **(value, weight)**. The percentage gap is
+
+$$
+100\frac{V_{\text{optimal}}-V_{\text{greedy}}}{V_{\text{optimal}}}.
+$$
+
+| Case | Capacity | DP optimum | Ratio value | Ratio gap | Value heuristic result | Value gap |
+|---|---:|---:|---:|---:|---:|---:|
+| Classic ratio failure | 50 | 220 | 160 | 27.27% | 220 | 0.00% |
+| One large item beats small items | 100 | 95 | 40 | 57.89% | 95 | 0.00% |
+| Value ordering fails | 10 | 12 | 12 | 0.00% | 10 | 16.67% |
+| Both heuristics fail | 100 | 120 | 91 | 24.17% | 65 | 45.83% |
+| Control case | 12 | 21 | 21 | 0.00% | 21 | 0.00% |
+
+Source: [Experiment 4 results](../results/exp4_failure_cases.csv). The instances
+are defined in [exp4_failure_cases.py](../experiments/exp4_failure_cases.py).
+
+![DP and greedy values as percentages of optimal for the five constructed cases](../results/charts/exp4_failure_cases.png)
+
+*Experiment 4: Relative solution values for the four counterexamples and
+the control case. DP reaches 100% in every case.*
+
+1. **Classic ratio failure.** With capacity 50 and items $(60,10)$,
+   $(100,20)$, and $(120,30)$, ratio greedy selects the first two items
+   because their ratios are 6 and 5. This yields value 160 and leaves 20
+   units unused; the remaining item weighs 30. DP and value greedy select
+   the latter two items, achieving value 220. The initial high-ratio choice
+   blocks the better pair.
+
+2. **One large item beats small items.** With capacity 100, the items are
+   $(95,100)$ and four copies of $(10,6)$. Ratio greedy selects all four
+   small items, producing value 40 and leaving 76 units unused. The large
+   item no longer fits. DP and value greedy choose it alone for value 95.
+   This produces ratio greedy's largest gap among these five cases: 57.89%.
+
+3. **Value ordering fails.** With capacity 10 and items $(10,10)$, $(6,5)$,
+   and $(6,5)$, value greedy selects the individually most valuable item
+   and fills the bag for value 10. Ratio greedy and DP select both smaller
+   items for value 12. Filling the capacity completely therefore does not
+   establish optimality.
+
+4. **Both heuristics fail.** With capacity 100 and items $(60,50)$,
+   $(60,50)$, $(31,20)$, and $(65,100)$, ratio greedy first selects
+   $(31,20)$, then one $(60,50)$, obtaining 91. Value greedy selects
+   $(65,100)$, obtaining 65. DP instead selects both $(60,50)$ items for
+   120. Choosing the better of the two greedy answers would still miss
+   the optimum.
+
+5. **Control case.** With capacity 12 and items $(10,5)$, $(7,4)$,
+   $(4,3)$, $(3,2)$, and $(1,1)$, all algorithms obtain 21. DP and value
+   greedy select the first three items. Ratio greedy selects $(10,5)$,
+   $(7,4)$, $(3,2)$, and $(1,1)$. Different subsets can therefore achieve
+   the same optimal value.
+
+Together, the experiments show that ratio greedy can perform well on
+average while still suffering substantial losses on particular inputs.
+Its limitation is the commitment to locally attractive items without
+reconsidering the combinations they exclude. DP provides the optimal-value
+guarantee that both tested greedy heuristics lack.
 
 ## 5. Results
 
@@ -137,6 +271,18 @@ charts are in `results/charts/`.
 - Future work: FPTAS (value scaling), branch and bound, greedy plus the
   "best single item" fix which gives a 1/2 approximation guarantee.
 - [TODO: team reflection, division of work]
+
+## References
+
+1. Demaine, E., Ku, J., and Solomon, J. (2020).
+   [*Recitation 19: Complexity*](https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/7232b0ff982f501556118a8552654762_MIT6_006S20_r19.pdf).
+   MIT 6.006, Introduction to Algorithms.
+2. Cusack, C. A. (n.d.).
+   [*Fractional Knapsack*](https://cusack.hope.edu/DAIADS/Content/Algorithms/Greedy/Fractional%20Knapsack.html?path=Problems/Optimization/Fractional+Knapsack).
+   Hope College.
+3. Pisinger, D. (2005).
+   [Where are the hard knapsack problems?](https://doi.org/10.1016/j.cor.2004.03.002)
+   *Computers & Operations Research, 32*, 2271-2284.
 
 ## Appendix
 
