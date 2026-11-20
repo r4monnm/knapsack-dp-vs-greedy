@@ -2,9 +2,10 @@
 # Semester Project: When Does Greedy Fail? Comparing Dynamic Programming and
 # Greedy Algorithms for the Knapsack Problem
 #
-# Author: Ramon Mandujano III (rmanduj1@students.kennesaw.edu)
-# Team:   Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
-# File:   knapsack/instance.py
+# Author:    Ramon Mandujano III (rmanduj1@students.kennesaw.edu)
+# Team:      Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
+# Professor: Dr. Femi Ojo
+# File:      knapsack/instance.py
 
 """Knapsack problem instances: data classes, random generation, JSON I/O.
 

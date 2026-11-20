@@ -2,9 +2,10 @@
 # Semester Project: When Does Greedy Fail? Comparing Dynamic Programming and
 # Greedy Algorithms for the Knapsack Problem
 #
-# Author: Ramon Mandujano III (rmanduj1@students.kennesaw.edu)
-# Team:   Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
-# File:   experiments/exp1_items.py
+# Author:    Ramon Mandujano III (rmanduj1@students.kennesaw.edu)
+# Team:      Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
+# Professor: Dr. Femi Ojo
+# File:      experiments/exp1_items.py
 
 """Experiment 1: fixed capacity, growing number of items n.
 

@@ -4,6 +4,7 @@
 
 CS 4306 Algorithm Analysis, Kennesaw State University, Fall 2026
 Jonathan Brockob, Ramon Mandujano, Alex Rivera Figueroa, Ocean Tshimbalanga
+Professor: Dr. Femi Ojo
 
 Every `[TODO: ...]` below is a placeholder. The numbers come from
 `results/summary.md` after running `python experiments/run_all.py`; the

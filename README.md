@@ -4,6 +4,7 @@
 > Semester Project: When Does Greedy Fail? Comparing Dynamic Programming and Greedy Algorithms for the Knapsack Problem
 > Author: Ramon Mandujano III (rmanduj1@students.kennesaw.edu)
 > Team: Jonathan Brockob, Alex Rivera Figueroa, Ocean Tshimbalanga
+> Professor: Dr. Femi Ojo
 
 
 Comparing Dynamic Programming and Greedy Algorithms for the 0/1 Knapsack Problem.
